@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Navbar, Form, Button, Row, Col } from 'react-bootstrap';
 import { CustomTable } from './components/CustomTable/CustomTable';
-
-import './App.css'
 import { NewPayment } from './components/NewPayment/NewPayment';
+
+import './App.css';
 
 function App() {
   const [filter, setFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const columns = [
     { header: '#', accessor: 'id' },
@@ -19,15 +21,33 @@ function App() {
     { header: 'Tipo de cobrança', accessor: 'type' },
   ];
 
-  const data = [
-    { id: 1, product: 'PMS', value: '99,90', status: 'pendente', date: '2023-01-01', client_id: 1, type: 'avulsa' },
-    { id: 2, product: 'Motor', value: '89,90', status: 'confirmado', date: '2023-01-02', client_id: 2, type: 'avulsa' },
-    { id: 3, product: 'Channel', value: '79,90', status: 'falhou', date: '2023-01-03', client_id: 3, type: 'recorrente' },
-    { id: 4, product: 'PMS', value: '99,90', status: 'pendente', date: '2023-01-04', client_id: 4, type: 'recorrente' },
-    { id: 5, product: 'Motor', value: '89,90', status: 'confirmado', date: '2023-01-05', client_id: 5, type: 'recorrente' },
-  ];
+  async function fetchPayments() {
+    try {
+      const response = await fetch('http://localhost:3000/api/v1/payments');
+      const json = await response.json();
 
-  const filteredData = data.filter(item => {
+      const mapped = json.data.map((item) => ({
+        id: item.id,
+        product: item.product_name,
+        value: item.valor,
+        status: item.status_humanizado,
+        date: item.data_pagamento,
+        client_id: item.client_name,
+        type: item.tipo_cobranca,
+      }));
+      setPayments(mapped);
+    } catch (error) {
+      console.error('Erro ao buscar pagamentos:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const filteredData = payments.filter(item => {
     const searchTerm = filter.toLowerCase();
     return (
       item.product.toLowerCase().includes(searchTerm) ||
@@ -64,11 +84,15 @@ function App() {
             </Button>
           </Col>
         </Row>
-        <CustomTable columns={columns} data={filteredData} />
+        {loading ? (
+          <p>Carregando pagamentos...</p>
+        ) : (
+          <CustomTable columns={columns} data={filteredData} />
+        )}
       </Container>
-      <NewPayment showModal={showModal} setShowModal={setShowModal} />
+      <NewPayment showModal={showModal} setShowModal={setShowModal} onPaymentCreated={fetchPayments} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
