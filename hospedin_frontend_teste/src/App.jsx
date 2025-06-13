@@ -6,10 +6,13 @@ import { NewPayment } from './components/NewPayment/NewPayment';
 import './App.css';
 
 function App() {
-  const [filter, setFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [productFilter, setProductFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
 
   const columns = [
     { header: '#', accessor: 'id' },
@@ -22,8 +25,15 @@ function App() {
   ];
 
   async function fetchPayments() {
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/v1/payments');
+      const queryParams = new URLSearchParams();
+
+      if (productFilter) queryParams.append('name', productFilter);
+      if (statusFilter) queryParams.append('status_pagamento', statusFilter);
+      if (typeFilter) queryParams.append('tipo_cobranca', typeFilter);
+
+      const response = await fetch(`http://localhost:3000/api/v1/payments?${queryParams}`);
       const json = await response.json();
 
       const mapped = json.data.map((item) => ({
@@ -47,15 +57,6 @@ function App() {
     fetchPayments();
   }, []);
 
-  const filteredData = payments.filter(item => {
-    const searchTerm = filter.toLowerCase();
-    return (
-      item.product.toLowerCase().includes(searchTerm) ||
-      item.status.toLowerCase().includes(searchTerm) ||
-      item.type.toLowerCase().includes(searchTerm)
-    );
-  });
-
   return (
     <>
       <Navbar bg="dark" data-bs-theme="dark">
@@ -65,29 +66,51 @@ function App() {
       </Navbar>
       <Container>
         <Row className="my-3 align-items-center">
-          <Col md={6}>
-            <Form.Control
-              type="text"
-              placeholder="Filtrar produto, status ou tipo"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              style={{ maxWidth: '400px' }}
-            />
-          </Col>
-          <Col md={6} className="text-end">
-            <Button 
-              variant="success" 
-              className="fw-bold"
-              onClick={() => setShowModal(true)}
-            >
-              + Novo pagamento
-            </Button>
-          </Col>
+          <Row className="my-3 align-items-center">
+            <Col md={2}>
+              <Form.Control
+                type="text"
+                placeholder="Filtrar por produto"
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value)}
+              />
+            </Col>
+            <Col md={2}>
+              <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="">Todos os status</option>
+                <option value="pendente">Pendente</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="falhou">Falhou</option>
+              </Form.Select>
+            </Col>
+            <Col md={2}>
+              <Form.Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                <option value="">Todos os tipos</option>
+                <option value="avulsa">Pagamento Único</option>
+                <option value="recorrente">Assinatura Mensal</option>
+              </Form.Select>
+            </Col>
+            <Col md={2}>
+              <Button 
+                variant="primary"
+                onClick={fetchPayments}
+              >
+                Buscar
+              </Button>
+              <Button 
+                variant="success" 
+                className="fw-bold"
+                onClick={() => setShowModal(true)}
+              >
+                + Novo pagamento
+              </Button>
+            </Col>
+          </Row>
         </Row>
         {loading ? (
           <p>Carregando pagamentos...</p>
         ) : (
-          <CustomTable columns={columns} data={filteredData} />
+          <CustomTable columns={columns} data={payments} />
         )}
       </Container>
       <NewPayment showModal={showModal} setShowModal={setShowModal} onPaymentCreated={fetchPayments} />

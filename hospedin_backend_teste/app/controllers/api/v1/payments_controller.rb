@@ -96,13 +96,18 @@ class Api::V1::PaymentsController < ApplicationController
 
   def index
     payments = Payment.includes(:client, :product).order(created_at: :desc)
-    payments = payments.where(status: params[:status]) if params[:status].present?
-    payments = payments.where(tipo_cobranca: params[:tipo_cobranca]) if params[:tipo_cobranca].present?
-    payments = payments.where(client_id: params[:client_id]) if params[:client_id].present?
 
-    limit = [params[:limit].to_i, 100].min
-    limit = 20 if limit <= 0
-    payments = payments.limit(limit)
+    if params[:name].present?
+        payments = payments.joins(:product).where("LOWER(products.name) LIKE ?", "%#{params[:name].downcase}%")
+    end
+
+    if params[:status_pagamento].present?
+        payments = payments.where(status: params[:status_pagamento])
+    end
+
+    if params[:tipo_cobranca].present?
+        payments = payments.where(tipo_cobranca: params[:tipo_cobranca])
+    end
 
     render json: {
       success: true,
