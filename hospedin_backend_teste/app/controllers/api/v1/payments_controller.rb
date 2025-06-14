@@ -13,9 +13,9 @@ class Api::V1::PaymentsController < ApplicationController
         payment = Payment.create!(
           client: client,
           product: product,
-          valor: product.price,
-          status: 'pendente',
-          tipo_cobranca: params[:tipo_cobranca]
+          amount: product.price,
+          status: 'pending',
+          payment_type: params[:payment_type]
         )
       end
 
@@ -32,9 +32,9 @@ class Api::V1::PaymentsController < ApplicationController
             pagar_me_order_id: payment.pagar_me_order_id,
             client_name: payment.client.name,
             product_name: payment.product.name,
-            valor: payment.valor_formatado,
-            tipo_cobranca: payment.tipo_cobranca_humanizado,
-            status: payment.status_humanizado,
+            amount: payment.formatted_amount,
+            payment_type: payment.payment_type_label,
+            status: payment.status_label,
             created_at: payment.created_at
           }
         end
@@ -71,12 +71,12 @@ class Api::V1::PaymentsController < ApplicationController
         payments = payments.joins(:product).where("LOWER(products.name) LIKE ?", "%#{params[:name].downcase}%")
     end
 
-    if params[:status_pagamento].present?
-        payments = payments.where(status: params[:status_pagamento])
+    if params[:status].present?
+        payments = payments.where(status: params[:status])
     end
 
-    if params[:tipo_cobranca].present?
-        payments = payments.where(tipo_cobranca: params[:tipo_cobranca])
+    if params[:payment_type].present?
+        payments = payments.where(payment_type: params[:payment_type])
     end
 
     render json: {
@@ -86,13 +86,13 @@ class Api::V1::PaymentsController < ApplicationController
           id: payment.id,
           pagar_me_order_id: payment.pagar_me_order_id,
           status: payment.status,
-          status_humanizado: payment.status_humanizado,
-          valor: payment.valor_formatado,
-          tipo_cobranca: payment.tipo_cobranca_humanizado,
+          status_label: payment.status_label,
+          amount: payment.formatted_amount,
+          payment_type: payment.payment_type_label,
           client_name: payment.client.name,
           product_name: payment.product.name,
-          migrando_para_pagarme: payment.client.migrando_para_pagarme,
-          data_pagamento: payment.data_pagamento,
+          migrating_to_pagarme: payment.client.migrating_to_pagarme,
+          paid_at: payment.paid_at,
           created_at: payment.created_at
         }
       end,
@@ -100,7 +100,7 @@ class Api::V1::PaymentsController < ApplicationController
         total_count: payments.count,
         filters: {
           status: params[:status],
-          tipo_cobranca: params[:tipo_cobranca],
+          payment_type: params[:payment_type],
           client_id: params[:client_id]
         }
       }
@@ -110,6 +110,6 @@ class Api::V1::PaymentsController < ApplicationController
   private
 
   def payment_params
-    params.require(:payment).permit(:client_id, :product_id, :tipo_cobranca)
+    params.require(:payment).permit(:client_id, :product_id, :payment_type)
   end
 end

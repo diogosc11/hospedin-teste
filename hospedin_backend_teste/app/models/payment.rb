@@ -2,67 +2,67 @@ class Payment < ApplicationRecord
   belongs_to :client
   belongs_to :product
 
-  before_validation :gerar_pagar_me_id, on: :create
+  before_validation :generate_pagar_me_id, on: :create
 
-  enum :status, { pendente: 'pendente', confirmado: 'confirmado', falhou: 'falhou' }
-  enum :tipo_cobranca, { avulsa: 'avulsa', recorrente: 'recorrente' }
+  enum :status, { pending: 'pending', confirmed: 'confirmed', failed: 'failed' }
+  enum :payment_type, { one_time: 'one_time', recurring: 'recurring' }
 
-  validates :valor, presence: true, numericality: { greater_than: 0 }
-  validates :status, inclusion: { in: %w[pendente confirmado falhou] }
-  validates :tipo_cobranca, inclusion: { in: %w[avulsa recorrente] }
+  validates :amount, presence: true, numericality: { greater_than: 0 }
+  validates :status, inclusion: { in: %w[pending confirmed failed] }
+  validates :payment_type, inclusion: { in: %w[one_time recurring] }
 
-  def processado?
+  def processed?
     processed_at.present?
   end
 
-  def valor_formatado
-    "R$ #{valor.to_f.round(2).to_s.gsub('.', ',')}"
+  def formatted_amount
+    "R$ #{amount.to_f.round(2).to_s.gsub('.', ',')}"
   end
 
-  def status_humanizado
+  def status_label
     case status
-    when 'pendente'
+    when 'pending'
       'Pendente'
-    when 'confirmado'
+    when 'confirmed'
       'Confirmado'
-    when 'falhou'
+    when 'failed'
       'Falhou'
     end
   end
 
-  def tipo_cobranca_humanizado
-    case tipo_cobranca
-    when 'avulsa'
+  def payment_type_label
+    case payment_type
+    when 'one_time'
       'Pagamento Único'
-    when 'recorrente'
+    when 'recurring'
       'Assinatura Mensal'
     end
   end
 
-  def confirmar!(pagar_me_data = {})
+  def confirm!(pagar_me_data = {})
     update!(
-      status: 'confirmado',
-      data_pagamento: Time.current,
+      status: 'confirmed',
+      paid_at: Time.current,
       pagar_me_response: pagar_me_data,
       processed_at: Time.current
     )
   end
 
-  def falhar!(erro_data = {})
+  def fail!(error_data = {})
     update!(
-      status: 'falhou',
-      pagar_me_response: erro_data,
+      status: 'failed',
+      pagar_me_response: error_data,
       processed_at: Time.current
     )
   end
 
-  def marcar_como_processado!
-    update!(processed_at: Time.current) unless processado?
+  def mark_as_processed!
+    update!(processed_at: Time.current) unless processed?
   end
 
   private
 
-  def gerar_pagar_me_id
+  def generate_pagar_me_id
     self.pagar_me_order_id = "or_#{SecureRandom.hex(8)}" if pagar_me_order_id.blank?
   end
 end

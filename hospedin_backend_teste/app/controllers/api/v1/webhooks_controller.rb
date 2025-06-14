@@ -27,7 +27,7 @@ class Api::V1::WebhooksController < ApplicationController
       when 'invoice.paid'
         handle_invoice_paid(payment, event_data)
       else
-        Rails.logger.info "ℹEvento não processado: #{event_type}"
+        Rails.logger.info "Evento não processado: #{event_type}"
       end
       
       render json: { 
@@ -52,16 +52,16 @@ class Api::V1::WebhooksController < ApplicationController
   private
 
   def handle_payment_confirmed(payment, event_data)
-    return if payment.confirmado?
+    return if payment.confirmed?
     
     Rails.logger.info "Confirmando pagamento #{payment.id} via webhook"
     
     paid_amount = event_data.dig('charges', 0, 'paid_amount')
-    paid_amount = paid_amount ? paid_amount / 100.0 : payment.valor
+    paid_amount = paid_amount ? paid_amount / 100.0 : payment.amount
     
     payment.update!(
-      status: 'confirmado',
-      data_pagamento: Time.current,
+      status: 'confirmed',
+      paid_at: Time.current,
       pagar_me_response: event_data,
       processed_at: Time.current
     )
@@ -72,14 +72,14 @@ class Api::V1::WebhooksController < ApplicationController
   end
 
   def handle_payment_failed(payment, event_data)
-    return if payment.falhou?
+    return if payment.failed?
     
     Rails.logger.info "Marcando pagamento #{payment.id} como falhou via webhook"
     
     failure_reason = extract_failure_reason(event_data)
     
     payment.update!(
-      status: 'falhou',
+      status: 'failed',
       pagar_me_response: event_data.merge(failure_reason: failure_reason),
       processed_at: Time.current
     )
@@ -90,7 +90,7 @@ class Api::V1::WebhooksController < ApplicationController
   end
 
   def handle_subscription_created(payment, event_data)
-    return unless payment.recorrente?
+    return unless payment.recurring?
     
     Rails.logger.info "Assinatura criada para pagamento #{payment.id}"
     
@@ -109,7 +109,7 @@ class Api::V1::WebhooksController < ApplicationController
   end
 
   def handle_invoice_paid(payment, event_data)
-    return unless payment.recorrente?
+    return unless payment.recurring?
     
     Rails.logger.info "Fatura paga para assinatura do pagamento #{payment.id}"
     
@@ -138,10 +138,10 @@ class Api::V1::WebhooksController < ApplicationController
     new_payment = Payment.create!(
       client: original_payment.client,
       product: original_payment.product,
-      valor: original_payment.valor,
-      status: 'confirmado',
-      tipo_cobranca: 'recorrente',
-      data_pagamento: Time.current,
+      amount: original_payment.amount,
+      status: 'confirmed',
+      payment_type: 'recurring',
+      paid_at: Time.current,
       pagar_me_order_id: event_data['id'],
       pagar_me_response: event_data,
       processed_at: Time.current

@@ -42,7 +42,7 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
       await createPayment({
         client_id: formData.client_id,
         product_ids: formData.products,
-        tipo_cobranca: formData.tipo_cobranca,
+        payment_type: formData.payment_type,
       });
 
       handleCloseModal();
@@ -129,13 +129,13 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
                 <Form.Group className="mb-3">
                   <Form.Label>Tipo de Cobrança *</Form.Label>
                   <Form.Select
-                    value={formData.tipo_cobranca}
-                    onChange={(e) => handleInputChange('tipo_cobranca', e.target.value)}
+                    value={formData.payment_type}
+                    onChange={(e) => handleInputChange('payment_type', e.target.value)}
                     disabled={isSubmitting}
                   >
                     <option value="">Selecione o tipo</option>
-                    <option value="avulsa">Avulsa (Pagamento Único)</option>
-                    <option value="recorrente">Recorrente (Assinatura Mensal)</option>
+                    <option value="one_time">Avulsa (Pagamento Único)</option>
+                    <option value="recurring">Recorrente (Assinatura Mensal)</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -149,7 +149,7 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
           <Button 
             variant="success" 
             onClick={handleSavePayment}
-            disabled={isSubmitting || !formData.client_id || formData.products.length === 0 || !formData.tipo_cobranca}
+            disabled={isSubmitting || !formData.client_id || formData.products.length === 0 || !formData.payment_type}
           >
             {isSubmitting ? (
               <>

@@ -63,7 +63,7 @@ clients_data = [
     document_type: "CPF",
     gender: "male",
     birthdate: "1990-07-22",
-    migrando_para_pagarme: true,
+    migrating_to_pagarme: true,
     address: {
       country: "BR",
       state: "RJ",
@@ -115,37 +115,37 @@ payments_data = [
   {
     client: clients[0],
     product: products[0],
-    tipo_cobranca: 'avulsa',
-    status: 'confirmado',
-    data_pagamento: 2.days.ago
+    payment_type: 'one_time',
+    status: 'confirmed',
+    paid_at: 2.days.ago
   },
   {
     client: clients[1],
     product: products[1],
-    tipo_cobranca: 'recorrente',
-    status: 'confirmado',
-    data_pagamento: 1.day.ago
+    payment_type: 'recurring',
+    status: 'confirmed',
+    paid_at: 1.day.ago
   },
   {
     client: clients[0],
     product: products[2],
-    tipo_cobranca: 'avulsa',
-    status: 'falhou',
-    data_pagamento: nil
+    payment_type: 'one_time',
+    status: 'failed',
+    paid_at: nil
   },
   {
     client: clients[2],
     product: products[1],
-    tipo_cobranca: 'recorrente',
-    status: 'pendente',
-    data_pagamento: nil
+    payment_type: 'recurring',
+    status: 'pending',
+    paid_at: nil
   },
   {
     client: clients[1],
     product: products[2],
-    tipo_cobranca: 'avulsa',
-    status: 'confirmado',
-    data_pagamento: 3.hours.ago
+    payment_type: 'one_time',
+    status: 'confirmed',
+    paid_at: 3.hours.ago
   }
 ]
 
@@ -154,10 +154,10 @@ payments_data.each_with_index do |payment_data, index|
     payment = Payment.create!(
       client: payment_data[:client],
       product: payment_data[:product],
-      valor: payment_data[:product].price,
+      amount: payment_data[:product].price,
       status: payment_data[:status],
-      tipo_cobranca: payment_data[:tipo_cobranca],
-      data_pagamento: payment_data[:data_pagamento],
+      payment_type: payment_data[:payment_type],
+      paid_at: payment_data[:paid_at],
       pagar_me_order_id: "or_#{SecureRandom.hex(8)}",
       processed_at: payment_data[:status] != 'pendente' ? Time.current : nil
     )

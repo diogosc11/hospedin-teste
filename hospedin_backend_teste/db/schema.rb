@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_13_183833) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_14_220618) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -25,16 +25,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_13_183833) do
     t.date "birthdate"
     t.json "address"
     t.json "phones"
-    t.boolean "migrando_para_pagarme", default: false
+    t.boolean "migrating_to_pagarme", default: false
   end
 
   create_table "payments", force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "product_id", null: false
-    t.decimal "valor", precision: 10, scale: 2, null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
     t.string "status", default: "pendente", null: false
-    t.datetime "data_pagamento"
-    t.string "tipo_cobranca", null: false
+    t.datetime "paid_at"
+    t.string "payment_type", null: false
     t.string "pagar_me_order_id"
     t.json "pagar_me_response"
     t.json "webhook_payload"

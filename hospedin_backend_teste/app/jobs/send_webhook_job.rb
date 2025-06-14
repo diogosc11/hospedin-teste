@@ -11,7 +11,7 @@ class SendWebhookJob < ApplicationJob
       created_at: Time.current.iso8601,
       data: {
         id: first.pagar_me_order_id,
-        amount: (payments.sum(&:valor) * 100).to_i,
+        amount: (payments.sum(&:amount) * 100).to_i,
         status: map_status(first.status),
         customer: {
           name: first.client.name,
@@ -34,9 +34,9 @@ class SendWebhookJob < ApplicationJob
 
   def map_status(status)
     case status
-    when 'pendente' then 'pending'
-    when 'confirmado' then 'paid'
-    when 'falhou' then 'failed'
+    when 'pending' then 'pending'
+    when 'confirmed' then 'paid'
+    when 'failed' then 'failed'
     else 'pending'
     end
   end

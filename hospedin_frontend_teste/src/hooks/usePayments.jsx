@@ -13,7 +13,7 @@ export function usePayments() {
 
       if (filters.name) queryParams.append('name', filters.name);
       if (filters.status_pagamento) queryParams.append('status_pagamento', filters.status_pagamento);
-      if (filters.tipo_cobranca) queryParams.append('tipo_cobranca', filters.tipo_cobranca);
+      if (filters.payment_type) queryParams.append('payment_type', filters.payment_type);
 
       const response = await fetch(`http://localhost:3000/api/v1/payments?${queryParams}`);
       const json = await response.json();
@@ -21,12 +21,12 @@ export function usePayments() {
       const mapped = json.data.map((item) => ({
         id: item.id,
         product: item.product_name,
-        value: item.valor,
-        status: item.status_humanizado,
-        date: item.data_pagamento,
+        amount: item.amount,
+        status: item.status_label,
+        date: item.paid_at,
         client_id: item.client_name,
-        migrando: item.migrando_para_pagarme ? 'Sim' : 'Não',
-        type: item.tipo_cobranca,
+        migrando: item.migrating_to_pagarme ? 'Sim' : 'Não',
+        type: item.payment_type,
       }));
 
       setPayments(mapped);
@@ -37,7 +37,7 @@ export function usePayments() {
     }
   }, []);
 
-  const createPayment = useCallback(async ({ client_id, product_ids, tipo_cobranca }) => {
+  const createPayment = useCallback(async ({ client_id, product_ids, payment_type }) => {
     const response = await fetch('http://localhost:3000/api/v1/payments', {
       method: 'POST',
       headers: {
@@ -46,7 +46,7 @@ export function usePayments() {
       body: JSON.stringify({
         client_id: parseInt(client_id),
         product_ids: product_ids.map(Number),
-        tipo_cobranca,
+        payment_type,
       }),
     });
 

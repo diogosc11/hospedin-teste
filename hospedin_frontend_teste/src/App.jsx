@@ -19,7 +19,7 @@ function App() {
   const columns = [
     { header: '#', accessor: 'id' },
     { header: 'Produto', accessor: 'product' },
-    { header: 'Valor', accessor: 'value' },
+    { header: 'Valor', accessor: 'amount' },
     { header: 'Status', accessor: 'status' },
     { header: 'Data', accessor: 'date' },
     { header: 'Id do cliente', accessor: 'client_id' },

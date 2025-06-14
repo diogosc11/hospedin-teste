@@ -10,13 +10,13 @@ class ProcessPaymentJob < ApplicationJob
     pagar_me_response = simulate_pagarme_api_call(payments.to_a)
     
     if pagar_me_response[:success]
-      payments.each { |payment| payment.confirmar!(pagar_me_response[:data]) }
+      payments.each { |payment| payment.confirm!(pagar_me_response[:data]) }
       
       Rails.logger.info "Pagamentos confirmados: #{payment_ids.join(', ')}"
       
       SendWebhookJob.perform_later(payment_ids, 'payment.confirmed')
     else
-      payments.each { |payment| payment.falhar!(pagar_me_response[:error]) }
+      payments.each { |payment| payment.fail!(pagar_me_response[:error]) }
       
       Rails.logger.info "Pagamentos falharam: #{payment_ids.join(', ')}"
       
@@ -30,7 +30,7 @@ class ProcessPaymentJob < ApplicationJob
     
     begin
       Payment.where(id: payment_ids).each do |payment|
-        payment.falhar!({ error: e.message, processed_at: Time.current })
+        payment.fail!({ error: e.message, processed_at: Time.current })
       end
     rescue
       Rails.logger.error "Falha ao marcar pagamentos como erro"
@@ -42,16 +42,16 @@ class ProcessPaymentJob < ApplicationJob
   def simulate_pagarme_api_call(payments)
     payments = Array(payments)
     
-    total_valor = payments.sum(&:valor)
+    total_amount = payments.sum(&:amount)
     client = payments.first.client
 
     sleep(rand(1..3))
 
-    success = simulate_payment_success(total_valor)
+    success = simulate_payment_success(total_amount)
 
     response = {
       id: payments.first.pagar_me_order_id,
-      amount: (total_valor * 100).to_i,
+      amount: (total_amount * 100).to_i,
       currency: "BRL",
       status: success ? "paid" : "failed",
       items: payments.map do |p|
@@ -59,7 +59,7 @@ class ProcessPaymentJob < ApplicationJob
           id: "oi_#{SecureRandom.hex(8)}",
           type: "product",
           description: p.product.description,
-          amount: (p.valor * 100).to_i,
+          amount: (p.amount * 100).to_i,
           quantity: 1,
           payment_id: p.id
         }
@@ -88,17 +88,17 @@ class ProcessPaymentJob < ApplicationJob
     end
   end
 
-  def simulate_payment_success(valor_total)
+  def simulate_payment_success(total_amount)
     base_success_rate = 90
 
-    if valor_total > 1000
+    if total_amount > 1000
       base_success_rate = 95
-    elsif valor_total < 10
+    elsif total_amount < 10
       base_success_rate = 85
     end
 
-    sorteado = rand(100)
-    sorteado < base_success_rate
+    sorted = rand(100)
+    sorted < base_success_rate
   end
 
   def generate_error_message(payment)

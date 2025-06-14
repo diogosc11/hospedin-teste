@@ -71,7 +71,7 @@ class Api::V1::ClientsController < ApplicationController
       :document_type,
       :gender,
       :birthdate,
-      :migrando_para_pagarme,
+      :migrating_to_pagarme,
       address: [
         :country,
         :state,
