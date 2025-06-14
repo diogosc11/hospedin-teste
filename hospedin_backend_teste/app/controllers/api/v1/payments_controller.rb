@@ -1,4 +1,47 @@
 class Api::V1::PaymentsController < ApplicationController
+  def index
+    payments = Payment.includes(:client, :product).order(created_at: :desc)
+
+    if params[:name].present?
+        payments = payments.joins(:product).where("LOWER(products.name) LIKE ?", "%#{params[:name].downcase}%")
+    end
+
+    if params[:status].present?
+        payments = payments.where(status: params[:status])
+    end
+
+    if params[:payment_type].present?
+        payments = payments.where(payment_type: params[:payment_type])
+    end
+
+    render json: {
+      success: true,
+      data: payments.map do |payment|
+        {
+          id: payment.id,
+          pagar_me_order_id: payment.pagar_me_order_id,
+          status: payment.status,
+          status_label: payment.status_label,
+          amount: payment.formatted_amount,
+          payment_type: payment.payment_type_label,
+          client_name: payment.client.name,
+          product_name: payment.product.name,
+          migrating_to_pagarme: payment.client.migrating_to_pagarme,
+          paid_at: payment.paid_at,
+          created_at: payment.created_at
+        }
+      end,
+      meta: {
+        total_count: payments.count,
+        filters: {
+          status: params[:status],
+          payment_type: params[:payment_type],
+          client_id: params[:client_id]
+        }
+      }
+    }
+  end
+
   def create
     begin
       client = Client.find(params[:client_id])
@@ -64,48 +107,6 @@ class Api::V1::PaymentsController < ApplicationController
     end
   end
 
-  def index
-    payments = Payment.includes(:client, :product).order(created_at: :desc)
-
-    if params[:name].present?
-        payments = payments.joins(:product).where("LOWER(products.name) LIKE ?", "%#{params[:name].downcase}%")
-    end
-
-    if params[:status].present?
-        payments = payments.where(status: params[:status])
-    end
-
-    if params[:payment_type].present?
-        payments = payments.where(payment_type: params[:payment_type])
-    end
-
-    render json: {
-      success: true,
-      data: payments.map do |payment|
-        {
-          id: payment.id,
-          pagar_me_order_id: payment.pagar_me_order_id,
-          status: payment.status,
-          status_label: payment.status_label,
-          amount: payment.formatted_amount,
-          payment_type: payment.payment_type_label,
-          client_name: payment.client.name,
-          product_name: payment.product.name,
-          migrating_to_pagarme: payment.client.migrating_to_pagarme,
-          paid_at: payment.paid_at,
-          created_at: payment.created_at
-        }
-      end,
-      meta: {
-        total_count: payments.count,
-        filters: {
-          status: params[:status],
-          payment_type: params[:payment_type],
-          client_id: params[:client_id]
-        }
-      }
-    }
-  end
 
   private
 

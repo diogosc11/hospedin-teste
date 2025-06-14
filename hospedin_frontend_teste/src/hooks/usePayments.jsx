@@ -12,7 +12,7 @@ export function usePayments() {
       const queryParams = new URLSearchParams();
 
       if (filters.name) queryParams.append('name', filters.name);
-      if (filters.status_pagamento) queryParams.append('status_pagamento', filters.status_pagamento);
+      if (filters.status) queryParams.append('status', filters.status);
       if (filters.payment_type) queryParams.append('payment_type', filters.payment_type);
 
       const response = await fetch(`http://localhost:3000/api/v1/payments?${queryParams}`);

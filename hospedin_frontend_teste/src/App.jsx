@@ -27,6 +27,13 @@ function App() {
     { header: 'Tipo de cobrança', accessor: 'type' },
   ];
 
+  const handleClearFilters = () => {
+    setProductFilter('');
+    setStatusFilter('');
+    setTypeFilter('');
+    fetchPayments();
+  };
+
   useEffect(() => {
     fetchPayments();
   }, []);
@@ -52,16 +59,16 @@ function App() {
             <Col md={2}>
               <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="">Todos os status</option>
-                <option value="pendente">Pendente</option>
-                <option value="confirmado">Confirmado</option>
-                <option value="falhou">Falhou</option>
+                <option value="pending">Pendente</option>
+                <option value="confirmed">Confirmado</option>
+                <option value="failed">Falhou</option>
               </Form.Select>
             </Col>
             <Col md={2}>
               <Form.Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
                 <option value="">Todos os tipos</option>
-                <option value="avulsa">Pagamento Único</option>
-                <option value="recorrente">Assinatura Mensal</option>
+                <option value="one_time">Pagamento Único</option>
+                <option value="recurring">Assinatura Mensal</option>
               </Form.Select>
             </Col>
             <Col md={4}>
@@ -71,12 +78,18 @@ function App() {
                   onClick={() =>
                     fetchPayments({
                       name: productFilter,
-                      status_pagamento: statusFilter,
-                      tipo_cobranca: typeFilter
+                      status: statusFilter,
+                      payment_type: typeFilter
                     })
                   }
                 >
                   Buscar
+                </Button>
+                <Button 
+                  variant="danger"
+                  onClick={handleClearFilters}
+                >
+                  Limpar
                 </Button>
                 <Button 
                   variant="success" 
