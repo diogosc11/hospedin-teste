@@ -63,6 +63,7 @@ clients_data = [
     document_type: "CPF",
     gender: "male",
     birthdate: "1990-07-22",
+    migrando_para_pagarme: true,
     address: {
       country: "BR",
       state: "RJ",

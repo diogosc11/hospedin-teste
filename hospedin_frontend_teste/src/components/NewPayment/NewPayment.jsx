@@ -3,15 +3,17 @@ import { Modal, Form, Button, Row, Col, Spinner, Alert } from "react-bootstrap";
 
 import { useClients } from "../../hooks/useClients";
 import { useProducts } from "../../hooks/useProducts";
+import { usePayments } from '../../hooks/usePayments';
 
 export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { clients, loading: clientsLoading, error: clientsError } = useClients();
   const { products, loading: productsLoading, error: productsError } = useProducts();
+  const { createPayment } = usePayments();
 
   const [formData, setFormData] = useState({
-    product: '',
+    products: [],
     client_id: '',
     payment_type: ''
   });
@@ -20,7 +22,7 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
     setShowModal(false);
 
     setFormData({
-      product: '',
+      products: [],
       client_id: '',
       payment_type: ''
     });
@@ -37,26 +39,16 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/v1/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: parseInt(formData.client_id),
-          product_id: parseInt(formData.product),
-          tipo_cobranca: formData.tipo_cobranca
-        })
+      await createPayment({
+        client_id: formData.client_id,
+        product_ids: formData.products,
+        tipo_cobranca: formData.tipo_cobranca,
       });
-
-      if (!response.ok) {
-        throw new Error('Erro ao criar pagamento');
-      }
 
       handleCloseModal();
       onPaymentCreated?.();
     } catch (error) {
-      console.error('Erro na requisição:', error);
+      console.error('Erro na criação do pagamento:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -83,27 +75,26 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
             <Row>
               <Col md={12}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Produto *</Form.Label>
+                  <Form.Label>Produtos *</Form.Label>
                   <Form.Select
-                    value={formData.product}
-                    onChange={(e) => handleInputChange('product', e.target.value)}
+                    multiple
+                    value={formData.products}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions, opt => opt.value);
+                      handleInputChange('products', selectedOptions);
+                    }}
                     disabled={productsLoading}
                   >
-                    <option value="">
-                      {productsLoading ? 'Carregando produtos...' : 'Selecione um produto'}
-                    </option>
-                    {products.map(product => (
-                      <option key={product.id} value={product.id}>
-                        {product.name}
-                      </option>
-                    ))}
+                    {productsLoading ? (
+                      <option>Carregando produtos...</option>
+                    ) : (
+                      products.map(product => (
+                        <option key={product.id} value={product.id}>
+                          {product.name}
+                        </option>
+                      ))
+                    )}
                   </Form.Select>
-                  {productsLoading && (
-                    <div className="mt-1">
-                      <Spinner animation="border" size="sm" />
-                      <span className="ms-2 small text-muted">Carregando produtos...</span>
-                    </div>
-                  )}
                 </Form.Group>
               </Col>
             </Row>
@@ -158,7 +149,7 @@ export function NewPayment({ showModal, setShowModal, onPaymentCreated }) {
           <Button 
             variant="success" 
             onClick={handleSavePayment}
-            disabled={isSubmitting || !formData.client_id || !formData.product || !formData.tipo_cobranca}
+            disabled={isSubmitting || !formData.client_id || formData.products.length === 0 || !formData.tipo_cobranca}
           >
             {isSubmitting ? (
               <>

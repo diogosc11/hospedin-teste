@@ -22,10 +22,10 @@ class ProcessPaymentJob < ApplicationJob
       SendWebhookJob.perform_later(payment.id, 'payment.failed')
     end
     
-  rescue ActiveRecord::RecordNotFound
-    Rails.logger.error "Pagamento #{payment_id} não encontrado"
-  rescue => e
-    Rails.logger.error "Erro ao processar pagamento #{payment_id}: #{e.message}"
+    rescue ActiveRecord::RecordNotFound
+      Rails.logger.error "Pagamento #{payment_id} não encontrado"
+    rescue => e
+      Rails.logger.error "Erro ao processar pagamento #{payment_id}: #{e.message}"
     
     begin
       payment = Payment.find(payment_id)
@@ -36,27 +36,42 @@ class ProcessPaymentJob < ApplicationJob
 
   private
 
-  def simulate_pagarme_api_call(payment)
+  def simulate_pagarme_api_call(payments)
+    payments = [payments] unless payments.is_a?(Array)
+
+    total_valor = payments.sum(&:valor)
+    client = payments.first.client
+
     sleep(rand(1..3))
-    
-    mock_response = generate_pagarme_response(payment)
-    
-    success = simulate_payment_success(payment)
-    
-    if success
-      {
-        success: true,
-        data: mock_response
-      }
-    else
-      {
-        success: false,
-        error: {
-          message: generate_error_message(payment),
-          code: 'payment_failed',
-          timestamp: Time.current.iso8601
+
+    success = simulate_payment_success(total_valor)
+
+    response = {
+      id: payments.first.pagar_me_order_id,
+      amount: (total_valor * 100).to_i,
+      currency: "BRL",
+      status: "paid",
+      items: payments.map do |p|
+        {
+          id: "oi_#{SecureRandom.hex(8)}",
+          type: "product",
+          description: p.product.description,
+          amount: (p.valor * 100).to_i,
+          quantity: 1
         }
-      }
+      end,
+      customer: {
+        name: client.name,
+        email: client.email
+      },
+      created_at: Time.current.iso8601,
+      updated_at: Time.current.iso8601
+    }
+
+    if success
+      { success: true, data: response }
+    else
+      { success: false, error: { message: "Erro ao processar pagamento", timestamp: Time.current.iso8601 } }
     end
   end
 
@@ -140,21 +155,19 @@ class ProcessPaymentJob < ApplicationJob
     }
   end
 
-    def simulate_payment_success(payment)
+  def simulate_payment_success(valor_total)
     base_success_rate = 90
 
-    valor = payment.valor.to_f
-
-    if valor > 1000
-        base_success_rate = 95
-    elsif valor < 10
-        base_success_rate = 85
+    if valor_total > 1000
+      base_success_rate = 95
+    elsif valor_total < 10
+      base_success_rate = 85
     end
 
     sorteado = rand(100)
 
     sorteado < base_success_rate
-    end
+  end
 
   def generate_error_message(payment)
     error_messages = [

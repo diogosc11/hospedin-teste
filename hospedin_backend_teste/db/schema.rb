@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_11_203718) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_13_183833) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_11_203718) do
     t.date "birthdate"
     t.json "address"
     t.json "phones"
+    t.boolean "migrando_para_pagarme", default: false
   end
 
   create_table "payments", force: :cascade do |t|

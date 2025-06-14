@@ -222,4 +222,8 @@ class Client < ApplicationRecord
       number
     end
   end
+
+  def em_migracao_para_pagarme?
+    migrando_para_pagarme == true
+  end
 end

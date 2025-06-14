@@ -1,23 +1,33 @@
 class SendWebhookJob < ApplicationJob
   queue_as :default
 
-  def perform(payment_id, event_type)
-    payment = Payment.find(payment_id)
-    
-    Rails.logger.info "Enviando webhook: #{event_type} para pagamento #{payment.id}"
-    
-    webhook_payload = build_simple_payload(payment, event_type)
-    
-    payment.update!(webhook_payload: webhook_payload)
-    
+  def perform(payment_ids, event_type)
+    payments = Payment.where(id: payment_ids)
+    first = payments.first
+
+    webhook_payload = {
+      id: "evt_#{SecureRandom.hex(6)}",
+      type: event_type,
+      created_at: Time.current.iso8601,
+      data: {
+        id: first.pagar_me_order_id,
+        amount: (payments.sum(&:valor) * 100).to_i,
+        status: map_status(first.status),
+        customer: {
+          name: first.client.name,
+          email: first.client.email
+        },
+        metadata: {
+          payment_ids: payments.map(&:id),
+          products: payments.map { |p| p.product.name }
+        }
+      }
+    }
+
     simulate_webhook_call(webhook_payload)
-    
-    Rails.logger.info "Webhook #{event_type} enviado com sucesso"
-    
-  rescue ActiveRecord::RecordNotFound
-    Rails.logger.error "Pagamento #{payment_id} não encontrado"
-  rescue => e
-    Rails.logger.error "Erro no webhook: #{e.message}"
+    payments.each { |p| p.update!(webhook_payload: webhook_payload) }
+
+    Rails.logger.info "Webhook enviado para pagamentos: #{payment_ids.join(', ')}"
   end
 
   private

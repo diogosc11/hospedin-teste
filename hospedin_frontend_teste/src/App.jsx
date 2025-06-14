@@ -3,16 +3,18 @@ import { Container, Navbar, Form, Button, Row, Col } from 'react-bootstrap';
 import { CustomTable } from './components/CustomTable/CustomTable';
 import { NewPayment } from './components/NewPayment/NewPayment';
 
+import { usePayments } from './hooks/usePayments';
+
 import './App.css';
 
 function App() {
   const [showModal, setShowModal] = useState(false);
-  const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [productFilter, setProductFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+
+  const { payments, loading, fetchPayments } = usePayments();
 
   const columns = [
     { header: '#', accessor: 'id' },
@@ -21,37 +23,9 @@ function App() {
     { header: 'Status', accessor: 'status' },
     { header: 'Data', accessor: 'date' },
     { header: 'Id do cliente', accessor: 'client_id' },
+    { header: 'Em Migração?', accessor: 'migrando' },
     { header: 'Tipo de cobrança', accessor: 'type' },
   ];
-
-  async function fetchPayments() {
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-
-      if (productFilter) queryParams.append('name', productFilter);
-      if (statusFilter) queryParams.append('status_pagamento', statusFilter);
-      if (typeFilter) queryParams.append('tipo_cobranca', typeFilter);
-
-      const response = await fetch(`http://localhost:3000/api/v1/payments?${queryParams}`);
-      const json = await response.json();
-
-      const mapped = json.data.map((item) => ({
-        id: item.id,
-        product: item.product_name,
-        value: item.valor,
-        status: item.status_humanizado,
-        date: item.data_pagamento,
-        client_id: item.client_name,
-        type: item.tipo_cobranca,
-      }));
-      setPayments(mapped);
-    } catch (error) {
-      console.error('Erro ao buscar pagamentos:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
     fetchPayments();
@@ -90,20 +64,22 @@ function App() {
                 <option value="recorrente">Assinatura Mensal</option>
               </Form.Select>
             </Col>
-            <Col md={2}>
-              <Button 
-                variant="primary"
-                onClick={fetchPayments}
-              >
-                Buscar
-              </Button>
-              <Button 
-                variant="success" 
-                className="fw-bold"
-                onClick={() => setShowModal(true)}
-              >
-                + Novo pagamento
-              </Button>
+            <Col md={4}>
+              <div className="d-flex gap-2">
+                <Button 
+                  variant="primary"
+                  onClick={fetchPayments}
+                >
+                  Buscar
+                </Button>
+                <Button 
+                  variant="success" 
+                  className="fw-bold"
+                  onClick={() => setShowModal(true)}
+                >
+                  + Novo pagamento
+                </Button>
+              </div>
             </Col>
           </Row>
         </Row>

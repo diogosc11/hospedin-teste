@@ -7,13 +7,13 @@ export function CustomTable({ columns, data }) {
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
-            {columns.map((col, index) => (
+            {columns?.map((col, index) => (
               <th key={index}>{col.header}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data.map((row, rowIndex) => (
+          {data?.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {columns.map((col, colIndex) => (
                 <td key={colIndex}>
