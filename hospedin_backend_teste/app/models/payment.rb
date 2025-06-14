@@ -2,6 +2,8 @@ class Payment < ApplicationRecord
   belongs_to :client
   belongs_to :product
 
+  before_validation :gerar_pagar_me_id, on: :create
+
   enum :status, { pendente: 'pendente', confirmado: 'confirmado', falhou: 'falhou' }
   enum :tipo_cobranca, { avulsa: 'avulsa', recorrente: 'recorrente' }
 
@@ -58,8 +60,9 @@ class Payment < ApplicationRecord
     update!(processed_at: Time.current) unless processado?
   end
 
-  def gerar_pagar_me_id!
-    self.pagar_me_order_id = "or_#{SecureRandom.hex(8)}" unless pagar_me_order_id.present?
-    save!
+  private
+
+  def gerar_pagar_me_id
+    self.pagar_me_order_id = "or_#{SecureRandom.hex(8)}" if pagar_me_order_id.blank?
   end
 end

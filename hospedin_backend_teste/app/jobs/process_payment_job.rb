@@ -1,44 +1,47 @@
 class ProcessPaymentJob < ApplicationJob
   queue_as :default
 
-  def perform(payment_id)
-    payment = Payment.find(payment_id)
+  def perform(payment_id_or_ids)
+    payment_ids = Array(payment_id_or_ids)
+    payments = Payment.where(id: payment_ids)
     
-    Rails.logger.info "Processando pagamento #{payment.id} - #{payment.pagar_me_order_id}"
+    Rails.logger.info "Processando #{payments.count} pagamentos: #{payment_ids.join(', ')}"
     
-    pagar_me_response = simulate_pagarme_api_call(payment)
+    pagar_me_response = simulate_pagarme_api_call(payments.to_a)
     
     if pagar_me_response[:success]
-      payment.confirmar!(pagar_me_response[:data])
+      payments.each { |payment| payment.confirmar!(pagar_me_response[:data]) }
       
-      Rails.logger.info "Pagamento #{payment.id} confirmado"
+      Rails.logger.info "Pagamentos confirmados: #{payment_ids.join(', ')}"
       
-      SendWebhookJob.perform_later(payment.id, 'payment.confirmed')
+      SendWebhookJob.perform_later(payment_ids, 'payment.confirmed')
     else
-      payment.falhar!(pagar_me_response[:error])
+      payments.each { |payment| payment.falhar!(pagar_me_response[:error]) }
       
-      Rails.logger.info "Pagamento #{payment.id} falhou"
+      Rails.logger.info "Pagamentos falharam: #{payment_ids.join(', ')}"
       
-      SendWebhookJob.perform_later(payment.id, 'payment.failed')
+      SendWebhookJob.perform_later(payment_ids, 'payment.failed')
     end
     
-    rescue ActiveRecord::RecordNotFound
-      Rails.logger.error "Pagamento #{payment_id} não encontrado"
-    rescue => e
-      Rails.logger.error "Erro ao processar pagamento #{payment_id}: #{e.message}"
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "Pagamentos não encontrados: #{payment_id_or_ids}"
+  rescue => e
+    Rails.logger.error "Erro ao processar pagamentos #{payment_id_or_ids}: #{e.message}"
     
     begin
-      payment = Payment.find(payment_id)
-      payment.falhar!({ error: e.message, processed_at: Time.current })
+      Payment.where(id: payment_ids).each do |payment|
+        payment.falhar!({ error: e.message, processed_at: Time.current })
+      end
     rescue
+      Rails.logger.error "Falha ao marcar pagamentos como erro"
     end
   end
 
   private
 
   def simulate_pagarme_api_call(payments)
-    payments = [payments] unless payments.is_a?(Array)
-
+    payments = Array(payments)
+    
     total_valor = payments.sum(&:valor)
     client = payments.first.client
 
@@ -50,20 +53,23 @@ class ProcessPaymentJob < ApplicationJob
       id: payments.first.pagar_me_order_id,
       amount: (total_valor * 100).to_i,
       currency: "BRL",
-      status: "paid",
+      status: success ? "paid" : "failed",
       items: payments.map do |p|
         {
           id: "oi_#{SecureRandom.hex(8)}",
           type: "product",
           description: p.product.description,
           amount: (p.valor * 100).to_i,
-          quantity: 1
+          quantity: 1,
+          payment_id: p.id
         }
       end,
       customer: {
         name: client.name,
         email: client.email
       },
+      payments_count: payments.count,
+      payment_ids: payments.map(&:id),
       created_at: Time.current.iso8601,
       updated_at: Time.current.iso8601
     }
@@ -71,88 +77,15 @@ class ProcessPaymentJob < ApplicationJob
     if success
       { success: true, data: response }
     else
-      { success: false, error: { message: "Erro ao processar pagamento", timestamp: Time.current.iso8601 } }
+      { 
+        success: false, 
+        error: { 
+          message: generate_error_message(payments.first),
+          payments_affected: payments.map(&:id),
+          timestamp: Time.current.iso8601 
+        } 
+      }
     end
-  end
-
-  def generate_pagarme_response(payment)
-    {
-      "id" => payment.pagar_me_order_id,
-      "code" => "#{SecureRandom.hex(4).upcase}",
-      "amount" => (payment.valor * 100).to_i,
-      "currency" => "BRL",
-      "closed" => true,
-      "items" => [
-        {
-          "id" => "oi_#{SecureRandom.hex(8)}",
-          "type" => "product",
-          "description" => payment.product.description,
-          "amount" => (payment.valor * 100).to_i,
-          "quantity" => 1,
-          "status" => "active",
-          "created_at" => Time.current.iso8601,
-          "updated_at" => Time.current.iso8601
-        }
-      ],
-      "customer" => {
-        "id" => "cus_#{SecureRandom.hex(8)}",
-        "name" => payment.client.name,
-        "email" => payment.client.email,
-        "delinquent" => false,
-        "created_at" => payment.client.created_at.iso8601,
-        "updated_at" => payment.client.updated_at.iso8601,
-        "phones" => format_customer_phones(payment.client)
-      },
-      "status" => "paid",
-      "created_at" => payment.created_at.iso8601,
-      "updated_at" => Time.current.iso8601,
-      "closed_at" => Time.current.iso8601,
-      "charges" => [
-        {
-          "id" => "ch_#{SecureRandom.hex(8)}",
-          "code" => "#{SecureRandom.hex(4).upcase}",
-          "amount" => (payment.valor * 100).to_i,
-          "paid_amount" => (payment.valor * 100).to_i,
-          "status" => "paid",
-          "currency" => "BRL",
-          "payment_method" => payment.tipo_cobranca == 'avulsa' ? 'credit_card' : 'credit_card',
-          "paid_at" => Time.current.iso8601,
-          "created_at" => Time.current.iso8601,
-          "updated_at" => Time.current.iso8601,
-          "customer" => {
-            "id" => "cus_#{SecureRandom.hex(8)}",
-            "name" => payment.client.name,
-            "email" => payment.client.email
-          },
-          "last_transaction" => {
-            "operation_key" => rand(100000000..999999999).to_s,
-            "id" => "tran_#{SecureRandom.hex(8)}",
-            "transaction_type" => "credit_card",
-            "gateway_id" => SecureRandom.uuid,
-            "amount" => (payment.valor * 100).to_i,
-            "status" => "captured",
-            "success" => true,
-            "installments" => 1,
-            "installment_type" => "merchant",
-            "statement_descriptor" => "HOSPEDIN",
-            "acquirer_name" => "simulator",
-            "acquirer_tid" => rand(100000000..999999999).to_s,
-            "acquirer_nsu" => rand(10000..99999).to_s,
-            "acquirer_auth_code" => rand(10..99).to_s,
-            "acquirer_message" => "Transação capturada com sucesso",
-            "acquirer_return_code" => "00",
-            "entry_mode" => "ecommerce",
-            "operation_type" => "auth_and_capture",
-            "created_at" => Time.current.iso8601,
-            "updated_at" => Time.current.iso8601,
-            "gateway_response" => {
-              "code" => "200",
-              "errors" => []
-            }
-          }
-        }
-      ]
-    }
   end
 
   def simulate_payment_success(valor_total)
@@ -165,7 +98,6 @@ class ProcessPaymentJob < ApplicationJob
     end
 
     sorteado = rand(100)
-
     sorteado < base_success_rate
   end
 

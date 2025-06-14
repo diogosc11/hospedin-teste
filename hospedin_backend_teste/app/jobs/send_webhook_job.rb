@@ -32,27 +32,6 @@ class SendWebhookJob < ApplicationJob
 
   private
 
-  def build_simple_payload(payment, event_type)
-    {
-      "id" => "evt_#{SecureRandom.hex(6)}",
-      "type" => event_type,
-      "created_at" => Time.current.iso8601,
-      "data" => {
-        "id" => payment.pagar_me_order_id,
-        "amount" => (payment.valor * 100).to_i,
-        "status" => map_status(payment.status),
-        "customer" => {
-          "name" => payment.client.name,
-          "email" => payment.client.email
-        },
-        "metadata" => {
-          "payment_id" => payment.id,
-          "product_name" => payment.product.name
-        }
-      }
-    }
-  end
-
   def map_status(status)
     case status
     when 'pendente' then 'pending'

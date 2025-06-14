@@ -17,10 +17,10 @@ class Api::V1::PaymentsController < ApplicationController
           status: 'pendente',
           tipo_cobranca: params[:tipo_cobranca]
         )
+      end
 
-        payment.gerar_pagar_me_id!
-        ProcessPaymentJob.perform_later(payment.id)
-        payment
+      if payments.any?
+        ProcessPaymentJob.perform_later(payments.map(&:id))
       end
 
       render json: {
