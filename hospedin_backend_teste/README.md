@@ -60,3 +60,12 @@ app/
 - Processamento assíncrono com simulação de delay
 - Multi-produtos por cliente no mesmo fluxo de pagamento
 - Flag de migração ASAAS → Pagar.me implementada
+
+## Possíveis Desafios na Migração ASAAS → Pagar.me
+
+Durante a migração de um sistema descentralizado (como o ASAAS) para o Pagar.me, alguns desafios esperados são:
+
+- Garantir que os clientes que ainda estão sendo cobrados via ASAAS não sofram cobrança duplicada.
+- Criar uma rotina de corte automático no ASAAS conforme a ativação no Pagar.me.
+- Manter histórico de cobranças anteriores.
+- Criar uma comunicação clara com o cliente final sobre a mudança no método de cobrança.
