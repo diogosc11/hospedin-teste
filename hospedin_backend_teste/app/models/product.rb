@@ -9,7 +9,7 @@ class Product < ApplicationRecord
   scope :by_price_range, ->(min, max) { where(price: min..max) }
   
   def formatted_price
-    "R$ #{price.to_f.round(2).to_s.gsub('.', ',')}"
+    ActionController::Base.helpers.number_to_currency(price, unit: 'R$ ', separator: ',', delimiter: '.')
   end
   
   def available_for_sale?

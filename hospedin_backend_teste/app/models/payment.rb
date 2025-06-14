@@ -16,7 +16,7 @@ class Payment < ApplicationRecord
   end
 
   def formatted_amount
-    "R$ #{amount.to_f.round(2).to_s.gsub('.', ',')}"
+    ActionController::Base.helpers.number_to_currency(amount, unit: 'R$ ', separator: ',', delimiter: '.')
   end
 
   def status_label
