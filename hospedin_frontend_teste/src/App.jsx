@@ -68,7 +68,13 @@ function App() {
               <div className="d-flex gap-2">
                 <Button 
                   variant="primary"
-                  onClick={fetchPayments}
+                  onClick={() =>
+                    fetchPayments({
+                      name: productFilter,
+                      status_pagamento: statusFilter,
+                      tipo_cobranca: typeFilter
+                    })
+                  }
                 >
                   Buscar
                 </Button>
