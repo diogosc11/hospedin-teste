@@ -1,12 +1,47 @@
-# React + Vite
+Interface web desenvolvida para simular a centralização de cobranças de produtos da Hospedin (PMS, Motor, Channel), com controle visual e filtro de pagamentos, utilizando o Pagar.me como gateway (simulado).
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Funcionalidades
 
-Currently, two official plugins are available:
+- Listagem de pagamentos em tabela
+- Filtros por produto, status e tipo de cobrança
+- Criação de novo pagamento via modal
+- Carregamento dinâmico de clientes e produtos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tecnologias Utilizadas
 
-## Expanding the ESLint configuration
+- React
+- React Bootstrap
+- Vite
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Como rodar localmente
+
+```bash
+git clone https://github.com/diogosc11/hospedin-teste.git
+cd hospedin_frontend_teste
+
+npm install
+npm run dev
+```
+
+> O backend deve estar rodando em `http://localhost:3000`
+
+## Estrutura Principal
+
+```
+src/
+├── App.js
+├── hooks/
+│   ├── usePayments.js
+│   ├── useClients.js
+│   └── useProducts.js
+├── components/
+│   ├── CustomTable/
+│   └── NewPayment/
+```
+
+## Próximos Passos
+
+- Paginação da listagem
+- Criação de testes unitários, de integração e E2E
+- Toasts para ações (sucesso, erro)
+- Tela de detalhes por cliente
