@@ -1,6 +1,22 @@
 class Client < ApplicationRecord
   has_many :payments
 
+  enum :client_type, {
+    individual: 'individual',
+    company: 'company'
+  }
+
+  enum :document_type, {
+    CPF: 'CPF',
+    CNPJ: 'CNPJ',
+    PASSPORT: 'PASSPORT'
+  }
+
+  enum :gender, {
+    male: 'male',
+    female: 'female'
+  }
+
   validates :name, presence: { message: "Nome é obrigatório" }
   validates :email, presence: { message: "Email é obrigatório" }
   validates :email, format: { 
@@ -11,21 +27,6 @@ class Client < ApplicationRecord
     case_sensitive: false, 
     message: "Este email já está sendo usado" 
   }
-
-  validates :client_type, inclusion: { 
-    in: %w[individual company], 
-    message: "deve ser 'individual' ou 'company'" 
-  }
-
-  validates :document_type, inclusion: { 
-    in: %w[CPF CNPJ PASSPORT], 
-    message: "deve ser 'CPF', 'CNPJ' ou 'PASSPORT'" 
-  }, allow_blank: true
-
-  validates :gender, inclusion: { 
-    in: %w[male female], 
-    message: "deve ser 'male' ou 'female'" 
-  }, allow_blank: true
 
   scope :individuals, -> { where(client_type: 'individual') }
   scope :companies, -> { where(client_type: 'company') }

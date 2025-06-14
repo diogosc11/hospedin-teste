@@ -2,29 +2,12 @@ class Payment < ApplicationRecord
   belongs_to :client
   belongs_to :product
 
+  enum :status, { pendente: 'pendente', confirmado: 'confirmado', falhou: 'falhou' }
+  enum :tipo_cobranca, { avulsa: 'avulsa', recorrente: 'recorrente' }
+
   validates :valor, presence: true, numericality: { greater_than: 0 }
   validates :status, inclusion: { in: %w[pendente confirmado falhou] }
   validates :tipo_cobranca, inclusion: { in: %w[avulsa recorrente] }
-
-  def pendente?
-    status == 'pendente'
-  end
-
-  def confirmado?
-    status == 'confirmado'
-  end
-
-  def falhou?
-    status == 'falhou'
-  end
-
-  def avulsa?
-    tipo_cobranca == 'avulsa'
-  end
-
-  def recorrente?
-    tipo_cobranca == 'recorrente'
-  end
 
   def processado?
     processed_at.present?

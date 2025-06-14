@@ -84,19 +84,19 @@ clients_data = [
 
 products_data = [
   {
-    name: "PMS",
+    name: "Sistema Hoteleiro - PMS",
     description: "Tenha total controle das suas reservas, acomodações e hóspedes com o Sistema Hoteleiro Hospedin",
     price: 99.90,
     active: true
   },
   {
-    name: "Motor",
+    name: "Motor de Reservas",
     description: "Receba reservas direto do site da sua pousada ou hotel sem ter que pagar comissões extras para as OTAs",
     price: 89.90,
     active: true
   },
   {
-    name: "Channel",
+    name: "Gestor de Canais",
     description: "Gerencie todas as reservas do Booking, Expedia, Decolar e vários outros canais no Hospedin",
     price: 79.90,
     active: true
