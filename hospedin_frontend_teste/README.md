@@ -25,6 +25,12 @@ npm run dev
 
 > O backend deve estar rodando em `http://localhost:3000`
 
+## Executar testes
+
+```bash
+npm test
+```
+
 ## Estrutura
 
 ```
@@ -62,6 +68,6 @@ src/
 ## Próximos Passos
 
 - Paginação da listagem
-- Criação de testes unitários, de integração e E2E
+- Aumentar a cobertura de testes
 - Toasts para ações (sucesso, erro)
 - Tela de detalhes por cliente

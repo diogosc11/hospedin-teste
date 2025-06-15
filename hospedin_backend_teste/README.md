@@ -27,6 +27,12 @@ rails server -p 3000
 
 A API estará disponível em `http://localhost:3000/api/v1`.
 
+## Executar testes
+
+```bash
+bundle exec rspec spec/models/payment_spec.rb --format documentation
+```
+
 ## Endpoints
 
 | Método | Endpoint                        | Função                                  |
@@ -88,7 +94,7 @@ app/
 ## Próximos Passos
 
 - Dashboard de faturamento e histórico de webhooks
-- Implementação de testes com RSpec
+- Aumento da cobertura de testes com RSpec
 - Integração real com Pagar.me
 
 ## Diferenciais
