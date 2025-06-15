@@ -32,8 +32,6 @@ class Client < ApplicationRecord
   scope :companies, -> { where(client_type: 'company') }
   scope :by_document_type, ->(type) { where(document_type: type) }
 
-  validates :client_type, presence: true, if: :document_present?
-  validates :document_type, presence: true, if: :document_present?
   validates :document, presence: true, uniqueness: true, if: :document_present?
 
   validates :document, length: { maximum: 16 }, if: :cpf_or_cnpj?
@@ -223,8 +221,8 @@ class Client < ApplicationRecord
       number
     end
   end
-  
+
   def is_migrating_to_pagarme?
-    migrating_to_pagarme == true
+    migrating_to_pagarme
   end
 end

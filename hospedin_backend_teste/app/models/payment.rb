@@ -2,6 +2,7 @@ class Payment < ApplicationRecord
   belongs_to :client
   belongs_to :product
 
+  before_create :generate_public_id
   before_validation :generate_pagar_me_id, on: :create
 
   enum :status, { pending: 'pending', confirmed: 'confirmed', failed: 'failed' }
@@ -61,6 +62,10 @@ class Payment < ApplicationRecord
   end
 
   private
+
+  def generate_public_id
+    self.public_id = SecureRandom.uuid if public_id.blank?
+  end
 
   def generate_pagar_me_id
     self.pagar_me_order_id = "or_#{SecureRandom.hex(8)}" if pagar_me_order_id.blank?

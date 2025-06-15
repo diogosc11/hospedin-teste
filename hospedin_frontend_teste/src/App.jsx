@@ -17,14 +17,13 @@ function App() {
   const { payments, loading, fetchPayments } = usePayments();
 
   const columns = [
-    { header: '#', accessor: 'id' },
-    { header: 'Produto', accessor: 'product' },
-    { header: 'Valor', accessor: 'amount' },
-    { header: 'Status', accessor: 'status' },
-    { header: 'Data', accessor: 'date' },
-    { header: 'Id do cliente', accessor: 'client_id' },
-    { header: 'Em Migração?', accessor: 'migrando' },
-    { header: 'Tipo de cobrança', accessor: 'type' },
+    { id: 'product', header: 'Produto', accessor: 'product' },
+    { id: 'amount', header: 'Valor', accessor: 'amount' },
+    { id: 'status', header: 'Status', accessor: 'status' },
+    { id: 'date', header: 'Data', accessor: 'date' },
+    { id: 'client_id', header: 'Cliente', accessor: 'client_id' },
+    { id: 'migrando', header: 'Em Migração?', accessor: 'migrando' },
+    { id: 'type', header: 'Tipo de cobrança', accessor: 'type' },
   ];
 
   const handleClearFilters = () => {

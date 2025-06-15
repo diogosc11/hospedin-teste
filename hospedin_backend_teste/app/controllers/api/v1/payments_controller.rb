@@ -18,7 +18,7 @@ class Api::V1::PaymentsController < ApplicationController
       success: true,
       data: payments.map do |payment|
         {
-          id: payment.id,
+          id: payment.public_id,
           pagar_me_order_id: payment.pagar_me_order_id,
           status: payment.status,
           status_label: payment.status_label,

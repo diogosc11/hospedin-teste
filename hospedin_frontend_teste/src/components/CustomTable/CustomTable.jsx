@@ -7,16 +7,16 @@ export function CustomTable({ columns, data }) {
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
-            {columns?.map((col, index) => (
-              <th key={index}>{col.header}</th>
+            {columns?.map((col) => (
+              <th key={col.id}>{col.header}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {data?.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {columns.map((col, colIndex) => (
-                <td key={colIndex}>
+          {data?.map((row) => (
+            <tr key={row.id}>
+              {columns.map((col) => (
+                <td key={col.id}>
                   {col.accessor === 'date' 
                     ? formatDate(row[col.accessor]) 
                     : row[col.accessor]
