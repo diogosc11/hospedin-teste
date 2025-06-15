@@ -1,4 +1,3 @@
-// src/hooks/usePayments.js
 import { useState, useCallback } from 'react';
 
 export function usePayments() {

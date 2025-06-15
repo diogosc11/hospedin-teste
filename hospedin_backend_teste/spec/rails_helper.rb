@@ -1,7 +1,7 @@
 require 'spec_helper'
-require File.expand_path('../config/environment', __dir__)
 require 'rspec/rails'
 require 'shoulda/matchers'
+require File.expand_path('../config/environment', __dir__)
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
