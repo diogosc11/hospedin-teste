@@ -25,7 +25,7 @@ npm run dev
 
 > O backend deve estar rodando em `http://localhost:3000`
 
-## Estrutura Principal
+## Estrutura
 
 ```
 src/
@@ -38,6 +38,26 @@ src/
 │   ├── CustomTable/
 │   └── NewPayment/
 ```
+
+## Arquitetura e Decisões Técnicas
+
+- Separação de responsabilidades entre UI, lógica de negócio e estado
+- Reutilização de código através de hooks customizados
+- Experiência do usuário com feedback visual e validações
+- Manutenibilidade com componentes pequenos
+
+1. Custom Hooks para Abstração de Estado
+
+- Reutilização
+- Testabilidade
+- Manutenibilidade
+- Separação de responsabilidades
+
+2. Componentes Pequenos e Focados
+
+- Fácil debugging e manutenção
+- Reutilização em diferentes contextos
+- Testes mais simples
 
 ## Próximos Passos
 

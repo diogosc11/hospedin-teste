@@ -48,6 +48,43 @@ app/
 └── services/ (em potencial)
 ```
 
+## Arquitetura e Decisões Técnicas
+
+- Separação de responsabilidades entre Models, Controllers e Jobs
+- Processamento assíncrono para operações críticas
+- Simulação realística do gateway de pagamento
+- Flexibilidade para migração gradual ASAAS → Pagar.me
+
+1. Processamento Assíncrono com Jobs
+- Resposta rápida para o usuário
+- Se o gateway falhar, não afeta a criação
+- Pode processar milhares de pagamentos
+
+2. Webhook Automático (Simula cenário real):
+- Gateway processa → Envia webhook → Sistema atualiza status
+- Tratamento de múltiplos eventos
+
+3. Multi-produto por Transação (Casos de uso reais):
+- Cliente compra "PMS + Motor de Reservas + Gestor de Canais"
+- Cada produto tem sua cobrança individual
+- Facilita relatórios por produto
+
+4. Rails API:
+- Sistema padronizado - desenvolvimento rápido
+- Active Job nativo
+- Active Record com validações
+
+5. Por que Jobs em vez de Services?
+- Processamento assíncrono
+- Retry automático em caso de falha
+- Facilidade de monitoramento
+
+6. Validações Complexas no Model
+- Regras de negócio centralizadas
+- Reutilização
+- Testabilidade
+- Consistência
+
 ## Próximos Passos
 
 - Dashboard de faturamento e histórico de webhooks
